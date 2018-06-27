@@ -1,0 +1,6 @@
+[submodule "MicroCoinCore"]
+	path = MicroCoinCore
+	url = https://github.com/MicroCoinHU/MicroCoinCore.git
+[submodule "MicroCoin-RPC-Client"]
+	path = MicroCoin-RPC-Client
+	url = https://github.com/MicroCoinHU/MicroCoin-RPC-Client.git
