@@ -9,8 +9,7 @@ Rider provides a RESTful API to allow client applications to interact with the M
 You can communicate with Rider using cURL or just your web browser. However, if you’re building a client application, you’ll likely want to use a MicroCoin SDK in the language of your client.
 
 # Before you begin
-Before you start developing useful to download the MicroCoin wallet. You can download the latest version from
-the here [MicroCoin Wallet](https://github.com/MicroCoinHU/MicroCoinWallet)
+Before you start developing useful to download the MicroCoin wallet. You can download the latest version from here [MicroCoin Wallet](https://github.com/MicroCoinHU/MicroCoinWallet)
 
 # Building
 
