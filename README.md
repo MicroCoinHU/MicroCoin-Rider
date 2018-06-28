@@ -21,7 +21,7 @@ Before you start developing useful to download the MicroCoin wallet. You can dow
 
 # Run your node on Ubuntu
 
-Download and run [microcoind](https://github.com/MicroCoinHU/microcoind)
+Download and run the [MicroCoin Daemon](https://github.com/MicroCoinHU/microcoind)
 
 **Install dotnetcore**
 ```bash
