@@ -10,7 +10,7 @@ You can communicate with Rider using cURL or just your web browser. However, if 
 
 # Before you begin
 Before you start developing useful to download the MicroCoin wallet. You can download the latest version from
-the official [MicroCoin website](https://microcoin.hu)
+the here [MicroCoin Wallet](https://github.com/MicroCoinHU/MicroCoinWallet)
 
 # Building
 
