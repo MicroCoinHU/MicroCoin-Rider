@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace MicroCoinApi.Json
 {
+    /// <summary>
+    /// Account number to JSON converter for Swagger
+    /// </summary>
     public class AccountNumberConverter : JsonConverter<AccountNumber>
     {
         public override AccountNumber ReadJson(JsonReader reader, Type objectType, AccountNumber existingValue, bool hasExistingValue, JsonSerializer serializer)

@@ -73,25 +73,27 @@ namespace MicroCoinApi
             {                
                 s.GeneratorSettings.DefaultPropertyNameHandling = PropertyNameHandling.CamelCase;               
                 s.SwaggerUiRoute = "/doc";
-                s.UseJsonEditor = true;                
+                s.UseJsonEditor = true;                          
                 s.DocExpansion = "list";                
                 s.GeneratorSettings.DefaultEnumHandling = EnumHandling.String;                
                 s.GeneratorSettings.Title = "MicroCoin";
                 s.GeneratorSettings.Version = "1.0.0";
                 s.GeneratorSettings.Description = Properties.Resources.documentation;
             });
-            app.UseSwaggerUi(typeof(Startup).GetTypeInfo().Assembly, settings =>
+            app.UseSwaggerUi3(typeof(Startup).GetTypeInfo().Assembly, settings =>
             {
                 settings.GeneratorSettings.DefaultPropertyNameHandling = PropertyNameHandling.CamelCase;                
-                settings.UseJsonEditor = true;
+                //settings.UseJsonEditor = true;                
                 settings.SwaggerUiRoute = "/explorer";
-                settings.UseJsonEditor = true;
+                //settings.UseJsonEditor = true;
                 settings.DocExpansion = "list";
                 settings.GeneratorSettings.DefaultEnumHandling = EnumHandling.String;
                 settings.GeneratorSettings.Title = "MicroCoin";
                 settings.GeneratorSettings.Version = "1.0.0";
                 settings.GeneratorSettings.Description = Properties.Resources.documentation;
-            });  /*
+            }); 
+                        
+            /*
             app.UseSwaggerUi3WithApiExplorer((settings) =>
             {
                 settings.GeneratorSettings.DefaultPropertyNameHandling =

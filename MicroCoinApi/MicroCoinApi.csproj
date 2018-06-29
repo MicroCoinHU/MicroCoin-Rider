@@ -28,7 +28,7 @@
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.0.1" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.1" />
-    <PackageReference Include="NSwag.AspNetCore" Version="11.17.15" />
+    <PackageReference Include="NSwag.AspNetCore" Version="11.17.18" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,21 +41,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\ts\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="wwwroot\js\microcoin.min.js">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>

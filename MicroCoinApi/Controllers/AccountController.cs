@@ -25,41 +25,12 @@ namespace MicroCoinApi.Controllers
     [Route("api/Account")]
     public class AccountController : Controller
     {
-
         private MicroCoinClient client = new MicroCoinClient(MicroCoinClientConfiguration.DefaultMainNet);
         private IHubContext<MicroCoinHub> hubContext;
 
         public AccountController(IHubContext<MicroCoinHub> hubContext)
         {
             this.hubContext = hubContext;
-        }
-
-        /// <summary>
-        /// Handle errors
-        /// </summary>
-        /// <param name="e"></param>
-        /// <returns>ObjectResult</returns>
-        protected ObjectResult HandlerError(MicroCoinRPCException e)
-        {
-            MicroCoinError error = new MicroCoinError
-            {
-                Message = e.Message,
-                ErrorCode = (int)e.Error.ErrorCode,
-                Help = ""
-            };
-            switch (e.Error.ErrorCode)
-            {
-                case ErrorCode.NotFound: return NotFound(error);
-                case ErrorCode.InvalidAccount: return BadRequest(error);
-                case ErrorCode.InternalError: return StatusCode(500, error);
-                case ErrorCode.InvalidBlock: return BadRequest(error);
-                case ErrorCode.InvalidData: return BadRequest(error);
-                case ErrorCode.InvalidOperation: return BadRequest(error);
-                case ErrorCode.InvalidPubKey: return BadRequest(error);
-                case ErrorCode.MethodNotFound: return BadRequest(error);
-                case ErrorCode.WalletPasswordProtected: return BadRequest(error);
-                default: return BadRequest(error);
-            }
         }
 
         /// <summary>
@@ -89,7 +60,7 @@ namespace MicroCoinApi.Controllers
         {
             AccountNumber number;
             try
-            {
+            {                
                 number = AccountNumber;
             }
             catch (InvalidCastException e)
@@ -109,9 +80,8 @@ namespace MicroCoinApi.Controllers
             }
             catch (MicroCoinRPCException e)
             {
-                return HandlerError(e);
+                return this.HandlerError(e);
             }
-
 
             if (account == null) return NotFound(new MicroCoinError {
                 ErrorCode = (int) ErrorCode.NotFound,
@@ -183,7 +153,7 @@ namespace MicroCoinApi.Controllers
             }
             catch (MicroCoinRPCException e)
             {
-                return HandlerError(e);
+                return this.HandlerError(e);
             }
         }
 
@@ -219,7 +189,7 @@ namespace MicroCoinApi.Controllers
                 }
                 catch (MicroCoinRPCException e)
                 {
-                    return HandlerError(e);
+                    return this.HandlerError(e);
                 }                
                 foreach (var account in client.FindMyAccounts(keyPair))
                 {
@@ -237,7 +207,7 @@ namespace MicroCoinApi.Controllers
             }
             catch (MicroCoinRPCException e)
             {
-                return HandlerError(e);
+                return this.HandlerError(e);
             }
         }
 
@@ -307,7 +277,7 @@ namespace MicroCoinApi.Controllers
                 return Ok(changeKey);
             }catch(MicroCoinRPCException e)
             {
-                return HandlerError(e);
+                return this.HandlerError(e);
             }
         }
 
@@ -411,7 +381,7 @@ namespace MicroCoinApi.Controllers
                     }
                     catch (MicroCoinRPCException e)
                     {
-                        return HandlerError(e);
+                        return this.HandlerError(e);
                     }
                 }
             }
@@ -451,7 +421,7 @@ namespace MicroCoinApi.Controllers
             }
             catch (MicroCoinRPCException e)
             {
-                return HandlerError(e);
+                return this.HandlerError(e);
             }
             Hash X = key.X;
             Hash Y = key.Y;
@@ -625,7 +595,7 @@ namespace MicroCoinApi.Controllers
             {
                 number = AccountNumber;
             }
-            catch (InvalidCastException e) {
+            catch (InvalidCastException) {
                 return BadRequest(new MicroCoinError(ErrorCode.InvalidAccount,"Invalid account",$"Account number ({AccountNumber}) not valid. You can specify account numbers in two way: number-checksum, or single number"));
             }
             try
@@ -654,7 +624,7 @@ namespace MicroCoinApi.Controllers
             }
             catch (MicroCoinRPCException e)
             {
-                return HandlerError(e);
+                return this.HandlerError(e);
             }
             catch (Exception e)
             {

@@ -1,4 +1,6 @@
 ﻿using MicroCoin;
+using MicroCoin.RPC;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,20 +8,47 @@ using System.Threading.Tasks;
 
 namespace MicroCoinApi.Models
 {
+    /// <summary>
+    /// API error response
+    /// </summary>
     public class MicroCoinError
     {
+        /// <summary>
+        /// Error code
+        /// </summary>
         public int ErrorCode { get; set; }
+        /// <summary>
+        /// Error message
+        /// </summary>
         public string Message { get; set; }
+        /// <summary>
+        /// Help test or url, if any
+        /// </summary>
         public string Help { get; set; }
 
+        /// <summary>
+        /// Constructs a new instance
+        /// </summary>
         public MicroCoinError()
         {
 
         }
+        /// <summary>
+        /// Constructs a new instance
+        /// </summary>
+        /// <param name="ErrorCode">Error code</param>
+        /// <param name="Message">Error message</param>
+        /// <param name="Help">Help text</param>
         public MicroCoinError(ErrorCode ErrorCode, string Message, string Help) : this((int)ErrorCode, Message, Help)
         {
 
         }
+        /// <summary>
+        /// Constructs a new instance
+        /// </summary>
+        /// <param name="ErrorCode">Error code</param>
+        /// <param name="Message">Error message</param>
+        /// <param name="Help">Help text</param>
         public MicroCoinError(int ErrorCode, string Message, string Help) : this()
         {
             this.ErrorCode = ErrorCode;
@@ -27,6 +56,11 @@ namespace MicroCoinApi.Models
             this.Help = Help;
         }
 
+        /// <summary>
+        /// Creates MicroCoinError from RPC ErrorCode
+        /// </summary>
+        /// <param name="errorCode">The error code</param>
+        /// <returns></returns>
         public static MicroCoinError Error(ErrorCode errorCode)
         {
             switch (errorCode)

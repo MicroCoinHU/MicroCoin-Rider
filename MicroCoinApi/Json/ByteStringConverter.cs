@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace MicroCoinApi.Json
 {
+    /// <summary>
+    /// ByteString to Json converter for swagger
+    /// </summary>
     public class ByteStringConverter : JsonConverter<ByteString>
     {
         public override ByteString ReadJson(JsonReader reader, Type objectType, ByteString existingValue, bool hasExistingValue, JsonSerializer serializer)

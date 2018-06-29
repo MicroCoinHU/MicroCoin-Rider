@@ -39,6 +39,11 @@ After this, the owner of the account will be you, and the old owner will not hav
 
 ## Download the client SDK
 First you need a MicroCoin Client PHP SDK.
+
+You can install with composer
+```
+composer require microcoin/microcoin
+```
 You can download it from [here](https://github.com/MicroCoinHU/MicroCoin-PHP-SDK/releases), or clone from our [Github](https://github.com/MicroCoinHU/MicroCoin-PHP-SDK) repository.
 ```bash
 git clone https://github.com/MicroCoinHU/MicroCoin-PHP-SDK.git
@@ -82,6 +87,14 @@ $key->setY($myKey->getPublic()->getY()->toString(16));
 
 print_r($api->myAccounts($key));
 ```
+## Get single account
+You can fetch any account if you know the account number
+```php
+$api = new \MicroCoin\Api\AccountApi();
+print_r($api->getAccount('0-10'));
+```
+
+
 ## List accounts for sale
 You can purchase accounts, but you need to know which accounts are for sale.
 ```php

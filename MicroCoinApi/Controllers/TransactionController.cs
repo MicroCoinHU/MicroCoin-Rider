@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
@@ -21,35 +22,6 @@ namespace MicroCoinApi.Controllers
     [Route("api/Transaction")]
     public class TransactionController : Controller
     {
-
-        /// <summary>
-        /// Handle errors
-        /// </summary>
-        /// <param name="e"></param>
-        /// <returns>ObjectResult</returns>
-        protected ObjectResult HandlerError(MicroCoinRPCException e)
-        {
-            MicroCoinError error = new MicroCoinError
-            {
-                Message = e.Message,
-                ErrorCode = (int)e.Error.ErrorCode,
-                Help = ""
-            };
-            switch (e.Error.ErrorCode)
-            {
-                case ErrorCode.NotFound: return NotFound(error);
-                case ErrorCode.InvalidAccount: return BadRequest(error);
-                case ErrorCode.InternalError: return StatusCode(500, error);
-                case ErrorCode.InvalidBlock: return BadRequest(error);
-                case ErrorCode.InvalidData: return BadRequest(error);
-                case ErrorCode.InvalidOperation: return BadRequest(error);
-                case ErrorCode.InvalidPubKey: return BadRequest(error);
-                case ErrorCode.MethodNotFound: return BadRequest(error);
-                case ErrorCode.WalletPasswordProtected: return BadRequest(error);
-                default: return BadRequest(error);
-            }
-        }
-
         /// <summary>
         /// Retrieve single transaction by hash
         /// </summary>
@@ -79,9 +51,10 @@ namespace MicroCoinApi.Controllers
             }
             catch (MicroCoinRPCException e)
             {
-                return HandlerError(e);
+                return this.HandlerError(e);
             }
-            if (resp == null) return NotFound( new MicroCoinError(ErrorCode.NotFound, "Transaction not found","No transaction found with the requested ophash"));
+            if (resp == null)
+                return NotFound( new MicroCoinError(ErrorCode.NotFound, "Transaction not found","No transaction found with the requested ophash"));
             var response = new Transaction
             {
                 Amount = resp.Amount,
@@ -96,7 +69,7 @@ namespace MicroCoinApi.Controllers
                 Target = resp.DestAccount,
                 Type = resp.Type.ToString()
             };
-            return response;
+            return Ok(response);
 
 
         }
@@ -121,34 +94,61 @@ namespace MicroCoinApi.Controllers
         public ActionResult<TransactionRequest> StartTransaction([FromBody] TransactionRequest data)
         {
             var microCoinClient = new MicroCoinClient();
-            string pubkey = microCoinClient.GetAccount(data.Sender).EncPubKey;
-            
-            var key = microCoinClient.DecodePubKey(pubkey, null);
+            AccountDTO account;
+            try
+            {
+                account = microCoinClient.GetAccount(data.Sender);
+            }
+            catch (MicroCoinRPCException e)
+            {
+                return this.HandlerError(e);
+            }
+            string pubkey = account.EncPubKey;
+            PublicKeyDTO key = null;
+            try
+            {
+                key = microCoinClient.DecodePubKey(pubkey, null);
+            }
+            catch (MicroCoinRPCException e)
+            {
+                return this.HandlerError(e);
+            }
             Hash X = key.X;
             Hash Y = key.Y;
-            var transaction = new MicroCoin.Transactions.TransferTransaction
+            try
             {
-                Amount = (ulong)(data.Amount * 10000),
-                Fee = (ulong)(data.Fee * 10000M),
-                Payload = data.Payload,
-                SignerAccount = data.Sender,
-                TargetAccount = data.Target,
-                TransactionStyle = MicroCoin.Transactions.TransferTransaction.TransferType.Transaction,
-                TransactionType = MicroCoin.Transactions.TransactionType.Transaction,
-                AccountKey = new ECKeyPair
+                var transaction = new MicroCoin.Transactions.TransferTransaction
                 {
-                    CurveType = CurveType.Secp256K1,
-                    PublicKey = new ECPoint
+                    Amount = (ulong)(data.Amount * 10000),
+                    Fee = (ulong)(data.Fee * 10000M),
+                    Payload = data.Payload,
+                    SignerAccount = data.Sender,
+                    TargetAccount = data.Target,
+                    TransactionStyle = MicroCoin.Transactions.TransferTransaction.TransferType.Transaction,
+                    TransactionType = MicroCoin.Transactions.TransactionType.Transaction,
+                    AccountKey = new ECKeyPair
                     {
-                        X = X,
-                        Y = Y,
+                        CurveType = CurveType.Secp256K1,
+                        PublicKey = new ECPoint
+                        {
+                            X = X,
+                            Y = Y,
+                        }
                     }
-                }
-            };
-            transaction.NumberOfOperations = microCoinClient.GetAccount(transaction.SignerAccount).NumOperations + 1;
-            Hash hash = transaction.GetHash();
-            data.Hash = hash;
-            return Ok(data);
+                };
+                transaction.NumberOfOperations = microCoinClient.GetAccount(transaction.SignerAccount).NumOperations + 1;
+                Hash hash = transaction.GetHash();
+                data.Hash = hash;
+                return Ok(data);
+            }
+            catch (MicroCoinRPCException e)
+            {
+                return this.HandlerError(e);
+            }
+            catch(Exception e)
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, new MicroCoinError(ErrorCode.UnknownError, e.Message, ""));
+            }
         }
         /// <summary>
         /// Commit a signed transaction
