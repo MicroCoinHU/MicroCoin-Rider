@@ -15,12 +15,7 @@ namespace MicroCoinApi
         /// <returns>API Response</returns>
         public static ObjectResult HandlerError(this Controller controller, MicroCoinRPCException e)
         {
-            MicroCoinError error = new MicroCoinError
-            {
-                Message = e.Message,
-                ErrorCode = (int)e.Error.ErrorCode,
-                Help = ""
-            };            
+            MicroCoinError error = new MicroCoinError(e.Error.ErrorCode, e.Message, "");
             switch (e.Error.ErrorCode)
             {
                 

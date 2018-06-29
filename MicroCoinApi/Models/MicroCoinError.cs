@@ -28,29 +28,12 @@ namespace MicroCoinApi.Models
         /// <summary>
         /// Constructs a new instance
         /// </summary>
-        public MicroCoinError()
-        {
-
-        }
-        /// <summary>
-        /// Constructs a new instance
-        /// </summary>
         /// <param name="ErrorCode">Error code</param>
         /// <param name="Message">Error message</param>
         /// <param name="Help">Help text</param>
-        public MicroCoinError(ErrorCode ErrorCode, string Message, string Help) : this((int)ErrorCode, Message, Help)
+        public MicroCoinError(ErrorCode ErrorCode, string Message, string Help)
         {
-
-        }
-        /// <summary>
-        /// Constructs a new instance
-        /// </summary>
-        /// <param name="ErrorCode">Error code</param>
-        /// <param name="Message">Error message</param>
-        /// <param name="Help">Help text</param>
-        public MicroCoinError(int ErrorCode, string Message, string Help) : this()
-        {
-            this.ErrorCode = ErrorCode;
+            this.ErrorCode = (int)ErrorCode;
             this.Message = Message;
             this.Help = Help;
         }

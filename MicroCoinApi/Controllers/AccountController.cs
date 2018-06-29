@@ -65,13 +65,7 @@ namespace MicroCoinApi.Controllers
             }
             catch (InvalidCastException e)
             {
-                return BadRequest(
-                    new MicroCoinError
-                    {
-                        Message = e.Message,
-                        ErrorCode = (int) ErrorCode.InvalidAccount,
-                        Help = $"Account number ({AccountNumber}) not valid. You can specify account numbers in two way: number-checksum, or single number"
-                    });
+                return BadRequest(new MicroCoinError(ErrorCode.InvalidAccount, e.Message, $"Account number ({AccountNumber}) not valid. You can specify account numbers in two way: number-checksum, or single number"));
             }
             AccountDTO account = null;
             try
@@ -83,11 +77,8 @@ namespace MicroCoinApi.Controllers
                 return this.HandlerError(e);
             }
 
-            if (account == null) return NotFound(new MicroCoinError {
-                ErrorCode = (int) ErrorCode.NotFound,
-                Message = $"Account {number} not found",
-                Help = "Your account number is valid, but no accounts exists with this number"
-            });
+            if (account == null)
+                return NotFound(new MicroCoinError(ErrorCode.NotFound,$"Account {number} not found","Your account number is valid, but no accounts exists with this number"));
             return new Account
             {
                 AccountNumber = account.AccountNumber,
@@ -180,7 +171,7 @@ namespace MicroCoinApi.Controllers
             {
                 string keyPair;
                 if (!Enum.TryParse(key.CurveType, true, out KeyType curveType))
-                    return BadRequest(new MicroCoinError((int)ErrorCode.InvalidPubKey, "Invalid key type", "Valid types are: secp256k1, secp384k1"));
+                    return BadRequest(new MicroCoinError(ErrorCode.InvalidPubKey, "Invalid key type", "Valid types are: secp256k1, secp384k1"));
                 try
                 {
                     keyPair = client.EncodePubKey(Enum.Parse<KeyType>(key.CurveType, true),
