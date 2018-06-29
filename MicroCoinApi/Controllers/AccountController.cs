@@ -589,6 +589,5 @@ namespace MicroCoinApi.Controllers
                 return BadRequest(new MicroCoinError(ErrorCode.InvalidData, e.Message, e.Message));
             }
         }
-
     }
 }

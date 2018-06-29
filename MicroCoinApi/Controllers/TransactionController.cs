@@ -22,6 +22,8 @@ namespace MicroCoinApi.Controllers
     [Route("api/Transaction")]
     public class TransactionController : Controller
     {
+        private MicroCoinClient client = new MicroCoinClient();
+
         /// <summary>
         /// Retrieve single transaction by hash
         /// </summary>
@@ -43,11 +45,10 @@ namespace MicroCoinApi.Controllers
         [SwaggerOperation("GetTransaction")]
         public ActionResult<Transaction> GetTransaction(string ophash)
         {
-            var microCoinClient = new MicroCoinClient();
             OperationDTO resp;
             try
             {
-                resp = microCoinClient.FindOperation(ophash);
+                resp = client.FindOperation(ophash);
             }
             catch (MicroCoinRPCException e)
             {
@@ -70,8 +71,6 @@ namespace MicroCoinApi.Controllers
                 Type = resp.Type.ToString()
             };
             return Ok(response);
-
-
         }
 
         /// <summary>
@@ -92,51 +91,10 @@ namespace MicroCoinApi.Controllers
         [SwaggerResponse(HttpStatusCode.BadRequest, typeof(MicroCoinError), Description = "Invalid data")]
         [SwaggerOperation("StartTransaction")]
         public ActionResult<TransactionRequest> StartTransaction([FromBody] TransactionRequest data)
-        {
-            var microCoinClient = new MicroCoinClient();
-            AccountDTO account;
+        {            
             try
             {
-                account = microCoinClient.GetAccount(data.Sender);
-            }
-            catch (MicroCoinRPCException e)
-            {
-                return this.HandlerError(e);
-            }
-            string pubkey = account.EncPubKey;
-            PublicKeyDTO key = null;
-            try
-            {
-                key = microCoinClient.DecodePubKey(pubkey, null);
-            }
-            catch (MicroCoinRPCException e)
-            {
-                return this.HandlerError(e);
-            }
-            Hash X = key.X;
-            Hash Y = key.Y;
-            try
-            {
-                var transaction = new MicroCoin.Transactions.TransferTransaction
-                {
-                    Amount = (ulong)(data.Amount * 10000),
-                    Fee = (ulong)(data.Fee * 10000M),
-                    Payload = data.Payload,
-                    SignerAccount = data.Sender,
-                    TargetAccount = data.Target,
-                    TransactionStyle = MicroCoin.Transactions.TransferTransaction.TransferType.Transaction,
-                    TransactionType = MicroCoin.Transactions.TransactionType.Transaction,
-                    AccountKey = new ECKeyPair
-                    {
-                        CurveType = CurveType.Secp256K1,
-                        PublicKey = new ECPoint
-                        {
-                            X = X,
-                            Y = Y,
-                        }
-                    }
-                };
-                transaction.NumberOfOperations = microCoinClient.GetAccount(transaction.SignerAccount).NumOperations + 1;
+                MicroCoin.Transactions.TransferTransaction transaction = TransactionRequestToTransaction(data);
                 Hash hash = transaction.GetHash();
                 data.Hash = hash;
                 return Ok(data);
@@ -150,6 +108,34 @@ namespace MicroCoinApi.Controllers
                 return StatusCode((int)HttpStatusCode.BadRequest, new MicroCoinError(ErrorCode.UnknownError, e.Message, ""));
             }
         }
+
+        private MicroCoin.Transactions.TransferTransaction TransactionRequestToTransaction(TransactionRequest data)
+        {
+            AccountDTO account = client.GetAccount(data.Sender);
+            string pubkey = account.EncPubKey;
+            PublicKeyDTO key = client.DecodePubKey(pubkey, null);
+            return new MicroCoin.Transactions.TransferTransaction
+            {
+                Amount = (ulong)(data.Amount * 10000),
+                Fee = (ulong)(data.Fee * 10000M),
+                Payload = data.Payload,
+                SignerAccount = data.Sender,
+                TargetAccount = data.Target,
+                TransactionStyle = MicroCoin.Transactions.TransferTransaction.TransferType.Transaction,
+                TransactionType = MicroCoin.Transactions.TransactionType.Transaction,
+                NumberOfOperations = client.GetAccount(data.Sender).NumOperations + 1,
+                AccountKey = new ECKeyPair
+                {
+                    CurveType = CurveType.Secp256K1,
+                    PublicKey = new ECPoint
+                    {
+                        X = (Hash)key.X,
+                        Y = (Hash)key.Y,
+                    }
+                }
+            };
+        }
+
         /// <summary>
         /// Commit a signed transaction
         /// </summary>
@@ -171,40 +157,15 @@ namespace MicroCoinApi.Controllers
         [SwaggerOperation("CommitTransaction")]
         public ActionResult<Transaction> CommitTransaction([FromBody] TransactionRequest data)
         {
-            var microCoinClient = new MicroCoinClient();
-            string pubkey = microCoinClient.GetAccount(data.Sender).EncPubKey;
-            var key = microCoinClient.DecodePubKey(pubkey, null);
-            Hash X = key.X;
-            Hash Y = key.Y;
-            var transaction = new MicroCoin.Transactions.TransferTransaction
-            {
-                Amount = (ulong)(data.Amount * 10000),
-                Fee = (ulong)(data.Fee * 10000M),
-                Payload = data.Payload,
-                SignerAccount = data.Sender,
-                TargetAccount = data.Target,
-                TransactionStyle = MicroCoin.Transactions.TransferTransaction.TransferType.Transaction,
-                TransactionType = MicroCoin.Transactions.TransactionType.Transaction,
-                AccountKey = new ECKeyPair
-                {
-                    CurveType = CurveType.Secp256K1,
-                    PublicKey = new ECPoint
-                    {
-                        X = X,
-                        Y = Y,
-                    }
-                }
-            };
-            transaction.NumberOfOperations = microCoinClient.GetAccount(transaction.SignerAccount).NumOperations + 1;
+            var transaction = TransactionRequestToTransaction(data);
             Hash hash = transaction.GetHash();
             if (data.Signature != null)
             {
-                var Signature = new ECSignature();
-                Hash R = data.Signature.R.ToUpper().PadLeft(64, '0');
-                Hash S = data.Signature.S.ToUpper().PadLeft(64, '0');
-                Signature.R = R;
-                Signature.S = S;
-                transaction.Signature = Signature;
+                transaction.Signature = new ECSignature()
+                {
+                    R = (Hash)data.Signature.R.ToUpper().PadLeft(64, '0'),
+                    S = (Hash)data.Signature.S.ToUpper().PadLeft(64, '0')
+                };                 
                 var b = Utils.ValidateSignature(hash, transaction.Signature, transaction.AccountKey);
                 if (!b)
                 {
@@ -220,7 +181,7 @@ namespace MicroCoinApi.Controllers
                     transaction.SaveToStream(ms);
                     ms.Position = 0;
                     Hash h = ms.ToArray();
-                    var resp = microCoinClient.ExecuteOperations(h);
+                    var resp = client.ExecuteOperations(h);
                     if (resp.First().Errors == null)
                     {
                         var op = resp.First();
@@ -250,4 +211,3 @@ namespace MicroCoinApi.Controllers
         }
     }
 }
-

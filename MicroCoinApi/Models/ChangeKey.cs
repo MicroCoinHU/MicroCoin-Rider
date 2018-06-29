@@ -11,11 +11,6 @@ namespace MicroCoinApi.Models
 {
     public class ChangeKey : ChangeKeyRequest
     {
-        /// <summary>
-        /// Number of transactions
-        /// </summary>
-        public uint NumberOfOperations { get; set; }
-
         public SimpleKey AccountKey { get; set; }
 
         /// <summary>
@@ -44,5 +39,9 @@ namespace MicroCoinApi.Models
         /// The transaction hash
         /// </summary>
         public string OpHash { get; internal set; }
+        /// <summary>
+        /// Number of transactions
+        /// </summary>
+        public uint NumberOfOperations { get; set; }
     }
 }

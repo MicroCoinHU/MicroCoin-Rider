@@ -25,7 +25,6 @@ namespace MicroCoinApi.Models
         /// Help test or url, if any
         /// </summary>
         public string Help { get; set; }
-
         /// <summary>
         /// Constructs a new instance
         /// </summary>
@@ -55,7 +54,6 @@ namespace MicroCoinApi.Models
             this.Message = Message;
             this.Help = Help;
         }
-
         /// <summary>
         /// Creates MicroCoinError from RPC ErrorCode
         /// </summary>
