@@ -31,7 +31,5 @@ namespace MicroCoinApi
                 Success = true
             };
         }
-
-
     }
 }

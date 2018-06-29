@@ -18,15 +18,13 @@ namespace MicroCoinApi.Json
             JObject jo = JObject.Load(reader);
             return jo.Value<string>("Value");            
         }
-
         public override void WriteJson(JsonWriter writer, ByteString value, JsonSerializer serializer)
         {
             JObject jo = new JObject();
             jo.Add("isReadable", value.IsReadable);
             jo.Add("Length", value.Length);
             jo.Add("Value", value.IsReadable?value.ToString():"");
-            jo.WriteTo(writer);
-            
+            jo.WriteTo(writer);            
         }
     }
 }

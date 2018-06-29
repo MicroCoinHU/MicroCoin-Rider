@@ -18,7 +18,6 @@ namespace MicroCoinApi
             MicroCoinError error = new MicroCoinError(e.Error.ErrorCode, e.Message, "");
             switch (e.Error.ErrorCode)
             {
-                
                 case ErrorCode.NotFound: return controller.NotFound(error);
                 case ErrorCode.InvalidAccount: return controller.BadRequest(error);
                 case ErrorCode.InternalError: return controller.StatusCode(500, error);

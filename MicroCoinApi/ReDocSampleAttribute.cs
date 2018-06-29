@@ -56,5 +56,4 @@ namespace MicroCoinApi
             public string Source { get; set; }
         }
     }
-
 }

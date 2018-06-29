@@ -18,12 +18,10 @@ namespace MicroCoinApi.Json
         {
             if (reader.TokenType == JsonToken.Null)
                 return null;
-
             JToken jt = JToken.Load(reader);
             String value = jt.Value<String>();
             return value;
         }
-
         public override void WriteJson(JsonWriter writer, AccountNumber value, JsonSerializer serializer)
         {
             writer.WriteValue(value.ToString());
