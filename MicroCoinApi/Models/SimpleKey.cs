@@ -22,5 +22,4 @@ namespace MicroCoinApi.Models
         /// </summary>
         public string Y { get; set; }
     }
-
 }

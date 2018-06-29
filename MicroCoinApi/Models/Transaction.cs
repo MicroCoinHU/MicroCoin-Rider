@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 
 namespace MicroCoinApi.Models
 {
-
     /// <summary>
     /// Transaction entity
     /// </summary>
@@ -55,5 +54,4 @@ namespace MicroCoinApi.Models
         /// </summary>
         public string OpHash { get; internal set; }
     }
-
 }

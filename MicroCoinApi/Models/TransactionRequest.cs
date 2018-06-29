@@ -12,15 +12,18 @@ namespace MicroCoinApi.Models
         /// Number of coins to send
         /// </summary>
         public decimal Amount { get; set; }
+
         /// <summary>
         /// Fee, if any
         /// Otherwise zero
         /// </summary>
         public decimal Fee { get; set; }
+
         /// <summary>
         /// Optional payload string
         /// </summary>
         public string Payload { get; set; }
+
         /// <summary>
         /// The sender account
         /// </summary>
@@ -34,12 +37,12 @@ namespace MicroCoinApi.Models
         [JsonConverter(typeof(AccountNumberConverter))]
         [JsonSchema(NJsonSchema.JsonObjectType.String)]
         public AccountNumber Target { get; set; }
+
         /// <summary>
         /// Transaction hash to sign
         /// </summary>
         public string Hash { get; set; }
+
         public Signature Signature { get; set; }
-
     }
-
 }
