@@ -178,9 +178,8 @@ namespace MicroCoinApi.Controllers
             var result = new List<Account>();
             try
             {
-                KeyType curveType;
                 string keyPair;
-                if (!Enum.TryParse<KeyType>(key.CurveType, true, out curveType))
+                if (!Enum.TryParse(key.CurveType, true, out KeyType curveType))
                     return BadRequest(new MicroCoinError((int)ErrorCode.InvalidPubKey, "Invalid key type", "Valid types are: secp256k1, secp384k1"));
                 try
                 {
@@ -241,44 +240,47 @@ namespace MicroCoinApi.Controllers
         {
             try
             {
-                var account = client.GetAccount(changeKey.AccountNumber);
-                string pubkey = account.EncPubKey;
-                var key = client.DecodePubKey(pubkey, null);
-                Hash X = key.X;
-                Hash Y = key.Y;
-                MicroCoin.Transactions.ChangeKeyTransaction transaction = new MicroCoin.Transactions.ChangeKeyTransaction
-                {
-                    NewAccountKey = new ECKeyPair
-                    {
-                        CurveType = Enum.Parse<CurveType>(changeKey.NewOwnerPublicKey.CurveType, true),
-                        PublicKey = new ECPoint
-                        {
-                            X = (Hash)changeKey.NewOwnerPublicKey.X.PadLeft(64, '0'),
-                            Y = (Hash)changeKey.NewOwnerPublicKey.Y.PadLeft(64, '0')
-                        }
-                    },
-                    TargetAccount = changeKey.AccountNumber,
-                    SignerAccount = changeKey.AccountNumber,
-                    TransactionType = MicroCoin.Transactions.TransactionType.ChangeKeySigned,
-                    NumberOfOperations = account.NumOperations + 1,
-                    Fee = (ulong)(changeKey.Fee * 10000M),
-                    AccountKey = new ECKeyPair
-                    {
-                        CurveType = (CurveType)key.KeyType,
-                        PublicKey = new ECPoint
-                        {
-                            X = X,
-                            Y = Y
-                        }
-                    }
-                };
-                Hash hash = transaction.GetHash();
-                changeKey.Hash = hash;
+                var transaction = ChangeKeyRequestToTransaction(changeKey);
+                changeKey.Hash = (Hash)transaction.GetHash();
                 return Ok(changeKey);
-            }catch(MicroCoinRPCException e)
+            }
+            catch (MicroCoinRPCException e)
             {
                 return this.HandlerError(e);
             }
+        }
+
+        private MicroCoin.Transactions.ChangeKeyTransaction ChangeKeyRequestToTransaction(ChangeKeyRequest changeKey)
+        {
+            var account = client.GetAccount(changeKey.AccountNumber);
+            string pubkey = account.EncPubKey;
+            var key = client.DecodePubKey(pubkey, null);
+            return new MicroCoin.Transactions.ChangeKeyTransaction
+            {
+                NewAccountKey = new ECKeyPair
+                {
+                    CurveType = Enum.Parse<CurveType>(changeKey.NewOwnerPublicKey.CurveType, true),
+                    PublicKey = new ECPoint
+                    {
+                        X = (Hash)changeKey.NewOwnerPublicKey.X.PadLeft(64, '0'),
+                        Y = (Hash)changeKey.NewOwnerPublicKey.Y.PadLeft(64, '0')
+                    }
+                },
+                TargetAccount = changeKey.AccountNumber,
+                SignerAccount = changeKey.AccountNumber,
+                TransactionType = MicroCoin.Transactions.TransactionType.ChangeKeySigned,
+                NumberOfOperations = account.NumOperations + 1,
+                Fee = (ulong)(changeKey.Fee * 10000M),
+                AccountKey = new ECKeyPair
+                {
+                    CurveType = (CurveType)key.KeyType,
+                    PublicKey = new ECPoint
+                    {
+                        X = (Hash)key.X,
+                        Y = (Hash)key.Y
+                    }
+                }
+            };
         }
 
         /// <summary>
@@ -306,48 +308,23 @@ namespace MicroCoinApi.Controllers
         [SwaggerOperation("CommitChangeKey")]
         public ActionResult CommitChangeKey([FromBody] ChangeKeyRequest changeKey)
         {
-            var account = client.GetAccount(changeKey.AccountNumber);
-            string pubkey = account.EncPubKey;
-            var key = client.DecodePubKey(pubkey, null);
-            Hash X = key.X;
-            Hash Y = key.Y;
-            MicroCoin.Transactions.ChangeKeyTransaction transaction = new MicroCoin.Transactions.ChangeKeyTransaction
+            MicroCoin.Transactions.ChangeKeyTransaction transaction = null;
+            try
             {
-                NewAccountKey = new ECKeyPair
-                {
-                    CurveType = Enum.Parse<CurveType>(changeKey.NewOwnerPublicKey.CurveType, true),
-                    PublicKey = new ECPoint
-                    {
-                        X = (Hash)changeKey.NewOwnerPublicKey.X.PadLeft(64, '0'),
-                        Y = (Hash)changeKey.NewOwnerPublicKey.Y.PadLeft(64, '0')
-                    }
-                },
-                TargetAccount = changeKey.AccountNumber,
-                SignerAccount = changeKey.AccountNumber,
-                Fee = (ulong)(changeKey.Fee * 10000M),
-                TransactionType = MicroCoin.Transactions.TransactionType.ChangeKeySigned,
-                NumberOfOperations = account.NumOperations + 1,
-                AccountKey = new ECKeyPair
-                {
-                    CurveType = (CurveType)key.KeyType,
-                    PublicKey = new ECPoint
-                    {
-                        X = X,
-                        Y = Y
-                    }
-                }
-            };
-
+                transaction = ChangeKeyRequestToTransaction(changeKey);
+            }
+            catch (MicroCoinRPCException e)
+            {
+                return this.HandlerError(e);
+            }
             if (changeKey.Signature == null)
             {
                 return BadRequest(new MicroCoinError(ErrorCode.InvalidOperation, "Missing signature", "You must sign the hash and set the signature"));
             }
-            Hash R = changeKey.Signature.R.PadLeft(64, '0');
-            Hash S = changeKey.Signature.S.PadLeft(64, '0');
             transaction.Signature = new ECSignature
             {
-                R = R,
-                S = S
+                R = (Hash)changeKey.Signature.R.PadLeft(64, '0'),
+                S = (Hash)changeKey.Signature.S.PadLeft(64, '0')
             };
             if (Utils.ValidateSignature(transaction.GetHash(), transaction.Signature, transaction.AccountKey))
             {
@@ -411,35 +388,45 @@ namespace MicroCoinApi.Controllers
         [SwaggerOperation("StartPurchaseAccount")]
         public ActionResult<PurchaseAccountRequest> StartPurchaseAccount([FromBody] PurchaseAccountRequest data)
         {
-            var account = client.GetAccount(data.AccountNumber);
-            var founder = client.GetAccount(data.FounderAccount);
-            string pubkey = founder.EncPubKey;
-            PublicKeyDTO key;
             try
             {
-                key = client.DecodePubKey(pubkey, null);
+                MicroCoin.Transactions.TransferTransaction transaction = PurchaseAccountRequestToTransaction(data);
+                data.Hash = (Hash)transaction.GetHash();
+                return Ok(data);
             }
             catch (MicroCoinRPCException e)
             {
                 return this.HandlerError(e);
             }
-            Hash X = key.X;
-            Hash Y = key.Y;
-            var transaction = new MicroCoin.Transactions.TransferTransaction
+            catch (Exception e)
             {
-                Amount = (ulong) (account.Price),
+                return StatusCode(500, new MicroCoinError(ErrorCode.UnknownError, e.Message, ""));
+            }
+        }
+
+        private MicroCoin.Transactions.TransferTransaction PurchaseAccountRequestToTransaction(PurchaseAccountRequest data)
+        {
+            var account = client.GetAccount(data.AccountNumber);
+            var founder = client.GetAccount(data.FounderAccount);
+            string pubkey = founder.EncPubKey;
+            PublicKeyDTO key = client.DecodePubKey(pubkey, null);
+            return new MicroCoin.Transactions.TransferTransaction
+            {
+                Amount = (ulong)(account.Price),
                 Fee = (ulong)(data.Fee * 10000M),
                 SignerAccount = founder.AccountNumber,
                 SellerAccount = account.SellerAccount,
                 TargetAccount = account.AccountNumber,
                 TransactionStyle = MicroCoin.Transactions.TransferTransaction.TransferType.BuyAccount,
                 TransactionType = MicroCoin.Transactions.TransactionType.BuyAccount,
+                NumberOfOperations = founder.NumOperations + 1,
                 AccountKey = new ECKeyPair
                 {
                     CurveType = (CurveType)key.KeyType,
-                    PublicKey = new ECPoint{
-                        X = X,
-                        Y = Y
+                    PublicKey = new ECPoint
+                    {
+                        X = (Hash)key.X,
+                        Y = (Hash)key.Y
                     }
                 },
                 AccountPrice = (ulong)(account.Price),
@@ -453,10 +440,6 @@ namespace MicroCoinApi.Controllers
                     }
                 }
             };
-            transaction.NumberOfOperations = founder.NumOperations + 1;
-            Hash hash = transaction.GetHash();
-            data.Hash = hash;
-            return Ok(data);
         }
 
         /// <summary>
@@ -480,52 +463,27 @@ namespace MicroCoinApi.Controllers
         [SwaggerResponse(HttpStatusCode.Forbidden, typeof(MicroCoinError), Description = "Invalid signature")]
         [SwaggerOperation("CommitPurchaseAccount")]
         public async Task<IActionResult> CommitPurchaseAccount([FromBody] PurchaseAccountRequest data)
-        {            
-            var account = await client.GetAccountAsync(data.AccountNumber);
-            var founder = await client.GetAccountAsync(data.FounderAccount);            
-            string pubkey = founder.EncPubKey;
-            var key = await client.DecodePubKeyAsync(pubkey, null);
-            Hash X = key.X;
-            Hash Y = key.Y;
-            var transaction = new MicroCoin.Transactions.TransferTransaction
+        {
+            MicroCoin.Transactions.TransferTransaction transaction = null;
+            try
             {
-                Amount = (ulong)(account.Price),
-                Fee = (ulong)(data.Fee * 10000M),
-                SignerAccount = founder.AccountNumber,
-                SellerAccount = account.SellerAccount,
-                TargetAccount = account.AccountNumber,
-                TransactionStyle = MicroCoin.Transactions.TransferTransaction.TransferType.BuyAccount,
-                TransactionType = MicroCoin.Transactions.TransactionType.BuyAccount,
-                AccountKey = new ECKeyPair
-                {
-                    CurveType = (CurveType)key.KeyType,
-                    PublicKey = new ECPoint
-                    {
-                        X = X,
-                        Y = Y
-                    }
-                },
-                AccountPrice = (ulong)(account.Price),
-                NewAccountKey = new ECKeyPair
-                {
-                    CurveType = Enum.Parse<CurveType>(data.NewKey.CurveType, true),
-                    PublicKey = new ECPoint
-                    {
-                        X = (Hash)data.NewKey.X.PadLeft(64, '0'),
-                        Y = (Hash)data.NewKey.Y.PadLeft(64, '0')
-                    }
-                }
-            };
-            transaction.NumberOfOperations = founder.NumOperations + 1;
+                transaction = PurchaseAccountRequestToTransaction(data);
+            }
+            catch (MicroCoinRPCException e)
+            {
+                return this.HandlerError(e);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new MicroCoinError(ErrorCode.UnknownError, e.Message, ""));
+            }
             Hash hash = transaction.GetHash();
             if (data.Signature != null)
             {
-                Hash R = data.Signature.R.PadLeft(64, '0');
-                Hash S = data.Signature.S.PadLeft(64, '0');
                 transaction.Signature = new ECSignature
                 {
-                    R = R,
-                    S = S
+                    R = (Hash) data.Signature.R.PadLeft(64, '0'),
+                    S = (Hash) data.Signature.S.PadLeft(64, '0')
                 };
                 if (Utils.ValidateSignature(hash, transaction.Signature, transaction.AccountKey))
                 {
@@ -539,7 +497,7 @@ namespace MicroCoinApi.Controllers
                         transaction.SaveToStream(ms);
                         ms.Position = 0;
                         Hash h = ms.ToArray();
-                        var resp = client.ExecuteOperations(h);
+                        var resp = await client.ExecuteOperationsAsync(h);
                         if (resp.Count() > 0 && resp.First().Errors == null)
                         {
                             var r = resp.First();
@@ -583,12 +541,12 @@ namespace MicroCoinApi.Controllers
         /// <response code="200">Transaction history</response>
         /// <response code="400">Invalid account number</response>
         [HttpGet("{AccountNumber}/history")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<Transaction>))]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<Models.Transaction>))]
         [ProducesResponseType(400, Type = typeof(MicroCoinError))]
         [SwaggerResponse(HttpStatusCode.OK, typeof(IEnumerable<Transaction>), Description = "List of the account history")]
         [SwaggerResponse(HttpStatusCode.BadRequest, typeof(MicroCoinError), Description = "Invalid account number")]
         [SwaggerOperation("GetTransactions")]
-        public ActionResult<IEnumerable<Transaction>> GetTransactions(string AccountNumber, [FromQuery] int? start=null, [FromQuery] int? max=null)
+        public ActionResult<IEnumerable<Models.Transaction>> GetTransactions(string AccountNumber, [FromQuery] int? start=null, [FromQuery] int? max=null)
         {
             AccountNumber number;
             try
