@@ -1,5 +1,7 @@
 # MicroCoin Rider
 
+[![GitHub license](https://img.shields.io/github/license/MicroCoinHU/MicroCoin-Rider.svg)](https://github.com/MicroCoinHU/MicroCoin-Rider/blob/master/LICENSE) [![Build Status](https://travis-ci.org/MicroCoinHU/MicroCoin-Rider.svg?branch=master)](https://travis-ci.org/MicroCoinHU/MicroCoin-Rider)
+
 Source code of the https://rider.microcoin.hu project
 
 MicroCoin Rider is an API server for the MicroCoin ecosystem.
