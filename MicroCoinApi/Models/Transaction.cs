@@ -20,6 +20,11 @@ namespace MicroCoinApi.Models
     /// </summary>
     public class Transaction : TransactionRequest
     {        
+
+
+        public uint? Timestamp { get; set; }
+        public uint? Block { get; set; }
+
         /// <summary>
         /// Number of transactions
         /// </summary>

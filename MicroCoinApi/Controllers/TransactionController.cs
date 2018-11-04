@@ -59,6 +59,8 @@ namespace MicroCoinApi.Controllers
             var response = new Transaction
             {
                 Amount = resp.Amount,
+                Block = resp.Block,
+                Timestamp = resp.Time,
                 Balance = resp.Balance,
                 Confirmations = resp.Maturation,
                 Fee = resp.Fee,

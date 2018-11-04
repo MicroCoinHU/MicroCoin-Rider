@@ -65,11 +65,20 @@ namespace MicroCoinApi.Controllers
             }
             catch (InvalidCastException e)
             {
-                return BadRequest(new MicroCoinError(ErrorCode.InvalidAccount, e.Message, $"Account number ({AccountNumber}) not valid. You can specify account numbers in two way: number-checksum, or single number"));
+                try
+                {
+                    var acc = client.FindAccounts(AccountNumber);
+                    if (acc.Count() > 0)
+                    {
+                        number = acc.First().AccountNumber;
+                    }
+                } catch (Exception e) {
+                    return BadRequest(new MicroCoinError(ErrorCode.InvalidAccount, e.Message, $"Account number ({AccountNumber}) not valid. You can specify account numbers in two way: number-checksum, or single number"));
+                }
             }
             AccountDTO account = null;
             try
-            {
+            {                
                 account = client.GetAccount(number);
             }
             catch (MicroCoinRPCException e)
@@ -554,11 +563,15 @@ namespace MicroCoinApi.Controllers
                 foreach (var op in ops)
                 {
                     ByteString payload = op.PayLoad;
+                    //if (!payload.IsReadable)
+                    //    payload = (Hash)payload;
                     result.Add(new Transaction
                     {
+                        Block = op.Block,
+                        Timestamp = op.Time,
                         Amount = op.Amount,
                         Fee = op.Fee,
-                        Payload = payload.IsReadable ? payload : new ByteString(new byte[0]),
+                        Payload = (Hash) op.PayLoad,
                         Sender = op.SenderAccount,
                         Target = (uint)op.DestAccount,
                         Signer = (uint)op.SignerAccount,

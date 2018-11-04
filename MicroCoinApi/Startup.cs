@@ -51,16 +51,16 @@ namespace MicroCoinApi
                 app.UseDeveloperExceptionPage();
             }
             //app.UseCors("AnyOrigin");
-            app.UseSignalR(routes =>
-            {
-                routes.MapHub<MicroCoinHub>("/stream");
-            });
             DefaultFilesOptions defoptions = new DefaultFilesOptions();
             defoptions.DefaultFileNames.Clear();
             defoptions.DefaultFileNames.Add("index.html");
             app.UseDefaultFiles(defoptions);
             app.UseStaticFiles();
             app.UseCors(b => b.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().AllowCredentials());
+            app.UseSignalR(routes =>
+            {
+                routes.MapHub<MicroCoinHub>("/stream");
+            });
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
                 Converters = new List<JsonConverter> {
