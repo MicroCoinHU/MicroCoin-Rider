@@ -72,7 +72,8 @@ namespace MicroCoinApi.Controllers
                     {
                         number = acc.First().AccountNumber;
                     }
-                } catch (Exception e) {
+                    else throw new Exception("Invalid account number");
+                } catch (Exception exption) {
                     return BadRequest(new MicroCoinError(ErrorCode.InvalidAccount, e.Message, $"Account number ({AccountNumber}) not valid. You can specify account numbers in two way: number-checksum, or single number"));
                 }
             }
