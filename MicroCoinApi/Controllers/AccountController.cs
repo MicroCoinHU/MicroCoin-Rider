@@ -533,6 +533,78 @@ namespace MicroCoinApi.Controllers
         }
 
         /// <summary>
+        /// Retrieve account pendig transactions
+        /// </summary>
+        /// <param name="AccountNumber">Account number to </param>       
+        /// <returns>List of the account history</returns>
+        /// <response code="200">Pendign transactions</response>
+        /// <response code="400">Invalid account number</response>
+        [HttpGet("{AccountNumber}/pending")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<Models.Transaction>))]
+        [ProducesResponseType(400, Type = typeof(MicroCoinError))]
+        [SwaggerResponse(HttpStatusCode.OK, typeof(IEnumerable<Transaction>), Description = "List of the pending transactions")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, typeof(MicroCoinError), Description = "Invalid account number")]
+        [SwaggerOperation("GetPendings")]
+        public ActionResult<IEnumerable<Models.Transaction>> GetTransactions(string AccountNumber)
+        {
+            AccountNumber number;
+            try
+            {
+                number = AccountNumber;
+            }
+            catch (InvalidCastException)
+            {
+                return BadRequest(new MicroCoinError(ErrorCode.InvalidAccount, "Invalid account", $"Account number ({AccountNumber}) not valid. You can specify account numbers in two way: number-checksum, or single number"));
+            }
+            try
+            {
+                var ops = client.GetPendings();
+                var filtered = new List<OperationDTO>();
+                foreach (var o in ops)
+                {                                            
+                    if(o.Account == number || o.SenderAccount == number || o.SignerAccount == number || o.DestAccount == number)
+                    {
+                        filtered.Add(o);
+                    }
+                }
+                var result = new List<Transaction>();
+                foreach (var op in filtered)
+                {
+                    ByteString payload = op.PayLoad;
+                    //if (!payload.IsReadable)
+                    //    payload = (Hash)payload;
+                    result.Add(new Transaction
+                    {
+                        Block = op.Block,
+                        Timestamp = op.Time,
+                        Amount = op.Amount,
+                        Fee = op.Fee,
+                        Payload = (Hash)op.PayLoad,
+                        Sender = op.SenderAccount,
+                        Target = (uint)op.DestAccount,
+                        Signer = (uint)op.SignerAccount,
+                        Type = op.Type.ToString(),
+                        Confirmations = op.Maturation,
+                        SubType = op.SubType.ToString(),
+                        Balance = op.Balance,
+                        OpHash = op.Ophash
+                    });
+                }
+                return Ok(result);
+            }
+            catch (MicroCoinRPCException e)
+            {
+                return this.HandlerError(e);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new MicroCoinError(ErrorCode.InvalidData, e.Message, e.Message));
+            }
+        }
+
+
+
+        /// <summary>
         /// Retrieve account transaction history
         /// </summary>
         /// <param name="AccountNumber">Account number to </param>
