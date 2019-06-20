@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 using MicroCoinApi.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using NJsonSchema;
 using NSwag.AspNetCore;
@@ -34,11 +29,13 @@ namespace MicroCoinApi
             services.AddSwagger();
             services.AddCors(options =>
             {
-                options.AddPolicy("AnyOrigin", builder =>
+                options.AddDefaultPolicy(builder =>
                 {
                     builder
-                        .AllowAnyOrigin()
-                        .AllowAnyMethod();
+                    .AllowCredentials()
+                    .AllowAnyHeader()
+                    .SetIsOriginAllowed(origin => true)
+                    .AllowAnyMethod();
                 });
             });
         }
@@ -60,7 +57,7 @@ namespace MicroCoinApi
             app.UseSignalR(routes =>
             {
                 routes.MapHub<MicroCoinHub>("/stream");
-            });
+            });            
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
                 Converters = new List<JsonConverter> {
