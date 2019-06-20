@@ -21,16 +21,21 @@ namespace MicroCoinApi.Models
     public class Transaction : TransactionRequest
     {        
 
-
-        public uint? Timestamp { get; set; }
-        public uint? Block { get; set; }
+        /// <summary>
+        /// The transaction timestamp
+        /// </summary>
+        public uint Timestamp { get; internal set; }
+        /// <summary>
+        /// The block which includes this transaction
+        /// </summary>
+        public uint Block { get; internal set; }
 
         /// <summary>
         /// Number of transactions
         /// </summary>
-        public uint NumberOfOperations { get; set; }
+        public uint NumberOfOperations { get; internal set; }
 
-        public SimpleKey AccountKey { get; set; }
+        public SimpleKey AccountKey { get; internal set; }
 
         /// <summary>
         /// Signer (sender) acount number
@@ -45,7 +50,7 @@ namespace MicroCoinApi.Models
         /// <summary>
         /// Transaction confirmations (how many blocks)
         /// </summary>
-        public uint? Confirmations { get; internal set; }
+        public uint Confirmations { get; internal set; }
         /// <summary>
         /// Transaction subtype
         /// </summary>

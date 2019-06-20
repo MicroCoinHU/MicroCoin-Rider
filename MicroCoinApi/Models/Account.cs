@@ -42,5 +42,6 @@ namespace MicroCoinApi.Models
         /// Account price if account for sale
         /// </summary>
         public decimal Price { get; set; }
+        public SimpleKey PublicKey { get; internal set; }
     }
 }

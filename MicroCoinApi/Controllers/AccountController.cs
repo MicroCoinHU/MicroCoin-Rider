@@ -73,7 +73,8 @@ namespace MicroCoinApi.Controllers
                         number = acc.First().AccountNumber;
                     }
                     else throw new Exception("Invalid account number");
-                } catch (Exception exption) {
+                } catch (Exception)
+                {
                     return BadRequest(new MicroCoinError(ErrorCode.InvalidAccount, e.Message, $"Account number ({AccountNumber}) not valid. You can specify account numbers in two way: number-checksum, or single number"));
                 }
             }
@@ -89,6 +90,7 @@ namespace MicroCoinApi.Controllers
 
             if (account == null)
                 return NotFound(new MicroCoinError(ErrorCode.NotFound,$"Account {number} not found","Your account number is valid, but no accounts exists with this number"));
+            var key = client.DecodePubKey(account.EncPubKey, null);
             return new Account
             {
                 AccountNumber = account.AccountNumber,
@@ -96,7 +98,12 @@ namespace MicroCoinApi.Controllers
                 Name = account.Name,
                 Status = account.State.ToString(),
                 Type = account.Type,
-                Price = account.Price / 10000M
+                Price = account.Price / 10000M,
+                PublicKey = new SimpleKey
+                {
+                    X = key.X,
+                    Y = key.Y
+                }
             };
         }
 
@@ -575,8 +582,8 @@ namespace MicroCoinApi.Controllers
                     //    payload = (Hash)payload;
                     result.Add(new Transaction
                     {
-                        Block = op.Block,
-                        Timestamp = op.Time,
+                        Block = op.Block.HasValue ? op.Block.Value : 0,
+                        Timestamp = op.Time.HasValue ? op.Time.Value : 0,
                         Amount = op.Amount,
                         Fee = op.Fee,
                         Payload = (Hash)op.PayLoad,
@@ -584,7 +591,7 @@ namespace MicroCoinApi.Controllers
                         Target = (uint)op.DestAccount,
                         Signer = (uint)op.SignerAccount,
                         Type = op.Type.ToString(),
-                        Confirmations = op.Maturation,
+                        Confirmations = op.Maturation.HasValue ? op.Maturation.Value : 0,
                         SubType = op.SubType.ToString(),
                         Balance = op.Balance,
                         OpHash = op.Ophash
@@ -640,8 +647,8 @@ namespace MicroCoinApi.Controllers
                     //    payload = (Hash)payload;
                     result.Add(new Transaction
                     {
-                        Block = op.Block,
-                        Timestamp = op.Time,
+                        Block = op.Block.HasValue?op.Block.Value:0,
+                        Timestamp = op.Time.HasValue?op.Time.Value:0,
                         Amount = op.Amount,
                         Fee = op.Fee,
                         Payload = (Hash) op.PayLoad,
@@ -649,7 +656,7 @@ namespace MicroCoinApi.Controllers
                         Target = (uint)op.DestAccount,
                         Signer = (uint)op.SignerAccount,
                         Type = op.Type.ToString(),
-                        Confirmations = op.Maturation,
+                        Confirmations = op.Maturation.HasValue?op.Maturation.Value:0,
                         SubType = op.SubType.ToString(),
                         Balance = op.Balance,
                         OpHash = op.Ophash

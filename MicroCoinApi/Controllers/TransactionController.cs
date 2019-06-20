@@ -59,10 +59,10 @@ namespace MicroCoinApi.Controllers
             var response = new Transaction
             {
                 Amount = resp.Amount,
-                Block = resp.Block,
-                Timestamp = resp.Time,
+                Block = resp.Block.HasValue ? resp.Block.Value : 0,
+                Timestamp = resp.Time.HasValue ? resp.Time.Value : 0,
                 Balance = resp.Balance,
-                Confirmations = resp.Maturation,
+                Confirmations = resp.Maturation.HasValue ? resp.Maturation.Value : 0,
                 Fee = resp.Fee,
                 OpHash = resp.Ophash,
                 Payload = (Hash)resp.PayLoad,
@@ -187,11 +187,11 @@ namespace MicroCoinApi.Controllers
                     if (resp.First().Errors == null)
                     {
                         var op = resp.First();
-                        var tr =  new Transaction
+                        var tr = new Transaction
                         {
                             Amount = op.Amount,
                             Balance = op.Balance,
-                            Confirmations = op.Maturation,
+                            Confirmations = op.Maturation.HasValue ? op.Maturation.Value : 0,
                             Fee = op.Fee,
                             OpHash = op.Ophash,
                             Sender = op.SenderAccount,
