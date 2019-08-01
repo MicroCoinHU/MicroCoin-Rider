@@ -1,6 +1,7 @@
 # MicroCoin Rider
 
 [![GitHub license](https://img.shields.io/github/license/MicroCoinHU/MicroCoin-Rider.svg)](https://github.com/MicroCoinHU/MicroCoin-Rider/blob/master/LICENSE) [![Build Status](https://travis-ci.org/MicroCoinHU/MicroCoin-Rider.svg?branch=master)](https://travis-ci.org/MicroCoinHU/MicroCoin-Rider) [![CodeFactor](https://www.codefactor.io/repository/github/microcoinhu/microcoin-rider/badge)](https://www.codefactor.io/repository/github/microcoinhu/microcoin-rider)
+[![Known Vulnerabilities](https://snyk.io//test/github/MicroCoinHU/MicroCoin-Rider/badge.svg?targetFile=MicroCoinApi/package.json)](https://snyk.io//test/github/MicroCoinHU/MicroCoin-Rider?targetFile=MicroCoinApi/package.json)
 
 Source code of the https://rider.microcoin.hu project
 
