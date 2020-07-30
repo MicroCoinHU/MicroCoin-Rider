@@ -3,6 +3,6 @@
   "name": "asp.net",
   "private": true,
   "devDependencies": {
-    "elliptic": "6.4.0"
+    "elliptic": "6.5.3"
   }
 }
